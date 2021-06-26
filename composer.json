@@ -1,0 +1,24 @@
+{
+    "name": "jeeinn/php-stomp-frame",
+    "description": "just stomp frame generate and parse",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "jeeinn",
+            "email": "hello1024@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.6",
+        "ext-json": "*"
+    },
+    "require-dev": {
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Stomp\\": "src/"
+        }
+    }
+}
