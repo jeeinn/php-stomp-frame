@@ -4,6 +4,8 @@ just stomp frame generate and parse
 `stomp` 协议帧，可以用于 tcp、tls、wss等协议
 
 ## Cases
+`composer require jeeinn/php-stomp-frame`
+
 #### Frame
 ```php
 $userName = 'test';
