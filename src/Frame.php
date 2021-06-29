@@ -1,4 +1,5 @@
 <?php
+
 namespace Stomp;
 
 use Exception;
@@ -92,9 +93,10 @@ class Frame
      * @param string $ackType
      * @return string
      */
-    public function getSubscribe($destination = '', $id = 0, $ackType = 'client')
+    public function getSubscribe($destination = '', $ackType = 'client', $id = 0)
     {
         $this->command = self::COMMAND_SUBSCRIBE;
+        # reset headers
         $this->headers = [
             'id' => $id,
             'ack' => $ackType,
@@ -149,7 +151,7 @@ class Frame
 
         $lines = explode(self::BYTE['LF'], trim($message));
         // print_r($lines);
-        $command = $lines[0];
+        $command = trim($lines[0]);
         if (!in_array($command, self::STOMP_SERVER_COMMAND)) throw new Exception("StompFrameParser: server command illegal\n$message");
         $headers = [];
         # get all header, get key, value from raw header
