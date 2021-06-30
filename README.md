@@ -1,7 +1,11 @@
 # php-stomp-frame
 just stomp frame generate and parse
 
+`stomp frame` can be used for tcp、tls、wss
+
 `stomp` 协议帧，可以用于 tcp、tls、wss等协议
+
+Referer: http://stomp.github.io/stomp-specification-1.2.html#Frames_and_Headers
 
 ## Cases
 `composer require jeeinn/php-stomp-frame`
@@ -16,8 +20,7 @@ $queue = 'service_queue_v1.2';
 $stompFrame = new \Stomp\Frame();
 
 # connect frame
-$stompFrame->setLogin($userName, $password)->setHeartBeat(0, 10000);
-$connectFrame = $stompFrame->getConnect();
+$connectFrame = $stompFrame->setLogin($userName, $password)->setHeartBeat(0, 10000)->getConnect();
 print_r($connectFrame);
 
 # subscribe frame
@@ -50,7 +53,7 @@ try {
 
 ## Over ws(s)://
 
-base on websocket
+base on websocket, example:
 
 `composer require textalk/websocket`
 
@@ -65,12 +68,11 @@ $queue = 'service_queue_v1.2';
 
 $stompFrame = new \Stomp\Frame();
 # connect frame
-$stompFrame->setLogin($userName, $password)->setHeartBeat(0, 10000);
-$connectFrame = $stompFrame->getConnect();
+$connectFrame = $stompFrame->setLogin($userName, $password)->setHeartBeat(0, 10000)->getConnect();
 # subscribe frame
 $subscribeFrame = $stompFrame->getSubscribe($queue);
 
-
+#use websocket
 $client = new \WebSocket\Client($url);
 $client->text($connectFrame);
 //var_dump($client->isConnected());
@@ -100,14 +102,18 @@ while (true) {
 }
 ```
 
+## Use tcp or ssl
+
+Referer: https://github.com/stomp-php/stomp-php
+
 ## Todo
 - [x] CONNECT
 - [x] SEND
-- [x] SUBSRIBE
-- [ ] UNSUBSRIBE
-- [ ]  BEGIN
-- [ ]  COMMIT
-- [ ]  ABORT
-- [ ]  ACK
-- [ ] NACK
-- [ ] DISCONNECT
+- [x] SUBSCRIBE
+- [x] UNSUBSCRIBE
+- [x] BEGIN
+- [x] COMMIT
+- [x] ABORT
+- [x] ACK
+- [x] NACK
+- [x] DISCONNECT

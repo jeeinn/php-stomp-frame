@@ -8,8 +8,15 @@ class Frame
 {
     const BYTE = ['LF' => "\n", 'NULL' => "\x00\n"];
     const COMMAND_CONNECT = 'CONNECT';
-    const COMMAND_SUBSCRIBE = 'SUBSCRIBE';
     const COMMAND_SEND = 'SEND';
+    const COMMAND_SUBSCRIBE = 'SUBSCRIBE';
+    const COMMAND_UNSUBSCRIBE = 'UNSUBSCRIBE';
+    const COMMAND_ACK = 'ACK';
+    const COMMAND_NACK = 'NACK';
+    const COMMAND_BEGIN = 'BEGIN';
+    const COMMAND_COMMIT = 'COMMIT';
+    const COMMAND_ABORT = 'ABORT';
+    const COMMAND_DISCONNECT = 'DISCONNECT';
     const VERSIONS = '1.0,1.1,1.2';
     const STOMP_SERVER_COMMAND = ['CONNECTED', 'ERROR', 'MESSAGE', 'RECEIPT'];
 
@@ -58,13 +65,16 @@ class Frame
     }
 
     /**
-     * @param int $send
-     * @param int $receive
+     * CONNECT heart-beat:<cx>,<cy>
+     * CONNECTED heart-beat:<sx>,<sy>
+     * MAX(<cx>,<sy>),MAX(<sx>,<cy>)
+     * @param int $outgoing
+     * @param int $incoming
      * @return $this
      */
-    public function setHeartBeat($send = 0, $receive = 0)
+    public function setHeartBeat($outgoing = 0, $incoming = 0)
     {
-        $this->addHeaders(['heart-beat' => $send . ',' . $receive,]);
+        $this->addHeaders(['heart-beat' => $outgoing . ',' . $incoming,]);
         return $this;
     }
 
@@ -93,26 +103,126 @@ class Frame
      * @param string $ackType
      * @return string
      */
-    public function getSubscribe($destination = '', $ackType = 'client', $id = 0)
+    public function getSubscribe($destination = '', $id = 0, $ackType = 'auto')
     {
         $this->command = self::COMMAND_SUBSCRIBE;
         # reset headers
-        $this->headers = [
+        $this->setHeaders([
             'id' => $id,
             'ack' => $ackType,
             'destination' => $destination,
-        ];
+        ]);
         return $this->getFrame();
     }
 
-    public function getSend($destination, $body = '', $contentType = 'text/plain')
+    /**
+     * @param int $id
+     */
+    public function getUnSubscribe($id = 0)
+    {
+        $this->command = self::COMMAND_UNSUBSCRIBE;
+        # reset headers
+        $this->setHeaders([
+            'id' => $id,
+        ]);
+        return $this->getFrame();
+    }
+
+    /**
+     * @param int $id ack server return message-id
+     * @param null $transaction
+     * @return string
+     */
+    public function getAck($id = 0, $transaction = null)
+    {
+        $this->command = self::COMMAND_ACK;
+        # reset headers
+        $this->setHeaders([
+            'id' => $id,
+        ]);
+        if (!is_null($transaction)) $this->addHeaders(['transaction' => $transaction]);
+        return $this->getFrame();
+    }
+
+    /**
+     * @param int $id nack server return message-id
+     * @param null $transaction
+     * @return string
+     */
+    public function getNack($id = 0, $transaction = null)
+    {
+        $this->command = self::COMMAND_NACK;
+        # reset headers
+        $this->setHeaders([
+            'id' => $id,
+        ]);
+        if (!is_null($transaction)) $this->addHeaders(['transaction' => $transaction]);
+        return $this->getFrame();
+    }
+
+    /**
+     * @param $destination
+     * @param string $body
+     * @param string $contentType
+     * @return string
+     */
+    public function getSend($destination, $body = null, $contentType = 'text/plain')
     {
         $this->command = self::COMMAND_SEND;
-        $this->headers = [
+        # reset headers
+        $this->setHeaders([
             'destination' => $destination,
-        ];
+        ]);
         $contentType && $this->addHeaders(['content-type' => $contentType]);
-        $body && $this->body = $body;
+        if (!is_null($body)) $this->body = $body;
+        return $this->getFrame();
+    }
+
+    /**
+     * @param null $transaction
+     * @return string
+     */
+    public function getBegin($transaction = null)
+    {
+        $this->command = self::COMMAND_BEGIN;
+        # reset headers
+        if (!is_null($transaction)) $this->setHeaders(['transaction' => $transaction]);
+        return $this->getFrame();
+    }
+
+    /**
+     * @param null $transaction
+     * @return string
+     */
+    public function getCommit($transaction = null)
+    {
+        $this->command = self::COMMAND_COMMIT;
+        # reset headers
+        if (!is_null($transaction)) $this->setHeaders(['transaction' => $transaction]);
+        return $this->getFrame();
+    }
+
+    /**
+     * @param null $transaction
+     * @return string
+     */
+    public function getAbort($transaction = null)
+    {
+        $this->command = self::COMMAND_ABORT;
+        # reset headers
+        if (!is_null($transaction)) $this->setHeaders(['transaction' => $transaction]);
+        return $this->getFrame();
+    }
+
+    /**
+     * @param null $receipt server will return receipt-id
+     * @return string
+     */
+    public function getDisconnect($receipt = null)
+    {
+        $this->command = self::COMMAND_DISCONNECT;
+        # reset headers
+        if (!is_null($receipt)) $this->setHeaders(['receipt' => $receipt]);
         return $this->getFrame();
     }
 
@@ -132,12 +242,15 @@ class Frame
         # add message, if any
         $lines->append(self::BYTE['LF']);
         if (!is_null($this->body)) {
+            $this->addHeaders([
+                'content-length' => strlen($this->body),
+            ]);
             $lines->append($this->body);
         }
         # terminate with null octet
         $lines->append(self::BYTE['NULL']);
 
-        return implode('', $lines->getArrayCopy());
+        return implode($lines->getArrayCopy());
     }
 
     /**
