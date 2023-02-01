@@ -101,6 +101,7 @@ while (true) {
     }
 }
 ```
+if you get empty content, please refer to: https://github.com/jeeinn/php-stomp-frame/issues/1#issuecomment-1387311240
 
 ## Use tcp or ssl
 
