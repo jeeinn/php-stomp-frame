@@ -229,7 +229,7 @@ class Frame
     /**
      * @return string
      */
-    final private function getFrame()
+    private function getFrame()
     {
         $lines = new \ArrayObject();
         $lines->append($this->command . self::BYTE['LF']);
